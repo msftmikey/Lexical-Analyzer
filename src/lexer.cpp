@@ -1,18 +1,20 @@
 /**
  *  CPSC 323 Compilers and Languages
- * 
+ *
  *  Dalton Caron, Teaching Associate
  *  dcaron@fullerton.edu, +1 949-616-2699
  *  Department of Computer Science
  */
+ //header
 #include <lexer.h>
-
+//libraries
+#include <iostream>
 #include <fstream>
 #include <sstream>
 #include <algorithm>
 
-Scanner::Scanner(const std::string file_path) 
-: file_path(file_path), current_column(1), current_line(1), 
+Scanner::Scanner(const std::string file_path)
+: file_path(file_path), current_column(1), current_line(1),
     current_character(0) {
         std::ifstream infile(file_path);
 
@@ -50,18 +52,18 @@ char Scanner::peek() const {
 }
 
 ScanningTable::ScanningTable(const CsvReader &table) {
-    // We read the table in column major order as to only call the 
+    // We read the table in column major order as to only call the
     // map_string_to_char function once per column iteration.
     int current_column = 1;
     while (current_column < table.getColumns()) {
 
-        const char current_symbol = 
+        const char current_symbol =
             this->map_string_to_char(table.get(0, current_column));
 
         int current_row = 1;
         while (current_row < table.getRows()) {
 
-            const state_t current_state = 
+            const state_t current_state =
                 atoi(table.get(current_row, 0).c_str());
 
             // This models the transition function ((state, symbol), state).
@@ -81,7 +83,7 @@ ScanningTable::ScanningTable(const CsvReader &table) {
 
         current_column++;
     }
-} 
+}
 
 char ScanningTable::getNextState(const state_t state, const char symbol) {
     return this->state_symbol_to_state[std::make_pair(state, symbol)];
@@ -119,7 +121,7 @@ TokenTable::TokenTable(const CsvReader &table) {
     while (row < table.getRows()) {
         // Insert the state-token class pair into the token table map.
         const state_t final_state = atoi(table.get(row, 0).c_str());
-        const token_class_t type_recognized = 
+        const token_class_t type_recognized =
             (token_class_t) atoi(table.get(row, 1).c_str());
         this->state_to_token_type[final_state] = type_recognized;
         row++;
@@ -136,7 +138,7 @@ bool TokenTable::isStateFinal(const state_t state) const {
     return this->state_to_token_type.count(state) > 0;
 }
 
-Lexer::Lexer() 
+Lexer::Lexer()
 : scanning_table(ScanningTable(CsvReader(this->scanning_table_path, ','))),
     token_table(TokenTable(CsvReader(this->token_table_path, ',')))
 {}
@@ -147,7 +149,7 @@ token_stream_t Lexer::lex(const std::string &file_path) {
     token_stream_t token_stream;
     Scanner scanner = Scanner(file_path);
     token_t token;
-    
+
     // While the scannr contains input, lex token by token.
     while (scanner.peek() != 0) {
         token = this->scan_token(scanner);
@@ -168,10 +170,43 @@ token_stream_t Lexer::lex(const std::string &file_path) {
 
 token_t Lexer::scan_token(Scanner &scanner) {
     token_t token;
+    token.lexeme = "";
+    token.file = scanner.getFilePath();
+    token.column = scanner.getColumn();
+    token.line= scanner.getLine();
+    int state = 1;
 
-    /**
-     * Your implemenation here.
-     */
+
+    while (scanner.peek() != EOF)
+    {
+      char i = scanner.peek();
+      std::cout << "The state number is: " << state << '\n';
+      std::cout << "The current character: " << i << '\n';
+      if (scanning_table.containsNextState(state,i) == true)
+      {
+          scanner.next();
+          token.lexeme += i;
+          state = scanning_table.getNextState(state, i);
+          continue;
+      }
+      else if (token_table.isStateFinal(state) == true)
+      {
+            token.type = token_table.getTokenTypeFromFinalState(state);
+            break;
+      }
+      else
+      {
+        token.type = ERROR;
+        std::cout << "error" << '\n';
+        std::cout << "state: " << state << '\n';
+        std::cout << "the column #: " << scanner.getColumn() << '\n';
+        std::cout << "the line #: " << scanner.getLine() << '\n';
+        std::cout << scanner.getFilePath() << '\n';
+        break;
+      }
+    }
 
     return token;
+
+
 }
