@@ -180,14 +180,14 @@ token_t Lexer::scan_token(Scanner &scanner) {
     while (scanner.peek() != EOF)
     {
       char i = scanner.peek();
-      if (scanning_table.containsNextState(state,i) == true)
+      if (scanning_table.containsNextState(state,i))
       {
           scanner.next();
           token.lexeme += i;
           state = scanning_table.getNextState(state, i);
           continue;
       }
-      else if (token_table.isStateFinal(state) == true)
+      else if (token_table.isStateFinal(state))
       {
             token.type = token_table.getTokenTypeFromFinalState(state);
             break;
