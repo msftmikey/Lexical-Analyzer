@@ -187,6 +187,13 @@ token_t Lexer::scan_token(Scanner &scanner) {
           state = scanning_table.getNextState(state, i);
           continue;
       }
+     if (token.type == 0) 
+     { 
+      if (reserved_words.find(token.lexeme) != reserved_words.end()) 
+      {
+       token.type = reserved.words.at(token.lexeme); 
+      }
+     }
       else if (token_table.isStateFinal(state))
       {
             token.type = token_table.getTokenTypeFromFinalState(state);
