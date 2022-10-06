@@ -180,8 +180,6 @@ token_t Lexer::scan_token(Scanner &scanner) {
     while (scanner.peek() != EOF)
     {
       char i = scanner.peek();
-      std::cout << "The state number is: " << state << '\n';
-      std::cout << "The current character: " << i << '\n';
       if (scanning_table.containsNextState(state,i) == true)
       {
           scanner.next();
@@ -197,11 +195,6 @@ token_t Lexer::scan_token(Scanner &scanner) {
       else
       {
         token.type = ERROR;
-        std::cout << "error" << '\n';
-        std::cout << "state: " << state << '\n';
-        std::cout << "the column #: " << scanner.getColumn() << '\n';
-        std::cout << "the line #: " << scanner.getLine() << '\n';
-        std::cout << scanner.getFilePath() << '\n';
         break;
       }
     }
