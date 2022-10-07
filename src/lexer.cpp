@@ -180,21 +180,15 @@ token_t Lexer::scan_token(Scanner &scanner) {
     while (scanner.peek() != EOF)
     {
       char i = scanner.peek();
-      if (scanning_table.containsNextState(state,i))
+      if (scanning_table.containsNextState(state, i) == true)
       {
           scanner.next();
           token.lexeme += i;
           state = scanning_table.getNextState(state, i);
+
           continue;
       }
-     if (token.type == 0) 
-     { 
-      if (reserved_words.find(token.lexeme) != reserved_words.end()) 
-      {
-       token.type = reserved.words.at(token.lexeme); 
-      }
-     }
-      else if (token_table.isStateFinal(state))
+      else if (token_table.isStateFinal(state) == true)
       {
             token.type = token_table.getTokenTypeFromFinalState(state);
             break;
@@ -205,8 +199,11 @@ token_t Lexer::scan_token(Scanner &scanner) {
         break;
       }
     }
-
+  if (token.type == IDENTIFIER) {
+    if(reserved_words.find(token.lexeme) != reserved_words.end())
+    {
+      token.type = reserved_words.at(token.lexeme);
+    }
+  }
     return token;
-
-
 }
